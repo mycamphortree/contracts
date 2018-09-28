@@ -61,14 +61,16 @@ namespace uosio{
 
     }
 
-    void uosio_union::utuosvotetr(account_name voter,uint64_t tr_time, account_name owner, int64_t amount) {
+    void uosio_union::utuosvotetr(account_name voter,std::string tr_id, account_name owner, int64_t amount) {
         require_auth(voter);
         eosio_assert(amount > 0 , "amount must big than 0");
+        eosio_assert(tr_id.size() < 70 , "id size must less than 70");
         auto& sta = _utuosstate.get(_self);
         auto it = std::find(sta.members.begin(), sta.members.end(), voter);
         eosio_assert(it != sta.members.end(),"voter was not in union");
-        uint64_t buffer[3] = {tr_time, owner , uint64_t(amount)};
-        uint64_t tr_hash = caculate_hash_64((char *)buffer , sizeof(buffer));
+        std::string buffer(tr_id);
+        buffer += std::to_string(owner) + std::to_string(amount);
+        uint64_t tr_hash = caculate_hash_64(buffer.c_str() , buffer.size());
         auto ver = _utuosvoter.find(voter);
         if(ver == _utuosvoter.end()){
             _utuosvoter.emplace(_self,[&](auto &a){
@@ -95,7 +97,7 @@ namespace uosio{
         if(tr == _uttouostr.end()){
             _uttouostr.emplace(_self,[&](auto &a){
                 a.tr_hash = tr_hash;
-                a.tr_time = tr_time;
+                a.tr_id = tr_id;
                 a.owner = owner;
                 a.amount = amount;
                 a.votes = 1;
@@ -115,7 +117,7 @@ namespace uosio{
                     .send();
 
             _utuosstate.modify(sta,0,[&](auto &a){
-                a.laster_time = tr->tr_time;
+                a.laster_id = tr->tr_id;
                 a.laster_owner = tr->owner;
                 a.amount = amount;
                 a.tr_hash = tr->tr_hash;

@@ -22,7 +22,7 @@ class uosio_union : public contract {
 public:
     uosio_union(account_name self);
     void modifymember(std::vector<account_name > &members);
-    void utuosvotetr(account_name voter,uint64_t tr_time , account_name owner , int64_t amount);
+    void utuosvotetr(account_name voter,std::string tr_id , account_name owner , int64_t amount);
     void transfer( account_name from, account_name to,asset quantity,std::string memo);
     void setsig(account_name voter, account_name tr , std::string sig);
     void setousutid(account_name voter,account_name tr , std::string id);
@@ -35,12 +35,12 @@ private:
     ///@abi table utuostr i64
     struct ut_to_uos_tr {
         uint64_t     tr_hash;
-        uint64_t     tr_time;
+        std::string     tr_id;
         account_name owner;
         int64_t      amount;
         int32_t      votes;
         uint64_t primary_key()const { return tr_hash; }
-        EOSLIB_SERIALIZE( ut_to_uos_tr, (tr_hash)(tr_time)(owner)(amount)(votes))
+        EOSLIB_SERIALIZE( ut_to_uos_tr, (tr_hash)(tr_id)(owner)(amount)(votes))
     };
     typedef eosio::multi_index<N(utuostr) , ut_to_uos_tr> uttouostr;
 
@@ -56,14 +56,14 @@ private:
 
      ///@abi table utuosstate i64
     struct ut_to_uos_state {
-        account_name owner;
-        uint64_t     laster_time;
-        account_name laster_owner;
-        int64_t      amount;
-        uint64_t tr_hash;
+        account_name    owner;
+        std::string     laster_id;
+        account_name    laster_owner;
+        int64_t         amount;
+        uint64_t        tr_hash;
         std::vector<account_name> members;
         uint64_t primary_key()const { return owner; }
-        EOSLIB_SERIALIZE( ut_to_uos_state, (owner)(laster_time)(laster_owner)(amount)(tr_hash)(members))
+        EOSLIB_SERIALIZE( ut_to_uos_state, (owner)(laster_id)(laster_owner)(amount)(tr_hash)(members))
     };
     typedef eosio::multi_index<N(utuosstate) , ut_to_uos_state> uttouosstate;
 
