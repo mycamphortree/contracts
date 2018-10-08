@@ -34,11 +34,11 @@ private:
 
     ///@abi table utuostr i64
     struct ut_to_uos_tr {
-        uint64_t     tr_hash;
+        uint64_t        tr_hash;
         std::string     tr_id;
-        account_name owner;
-        int64_t      amount;
-        int32_t      votes;
+        account_name    owner;
+        int64_t         amount;
+        int32_t         votes;
         uint64_t primary_key()const { return tr_hash; }
         EOSLIB_SERIALIZE( ut_to_uos_tr, (tr_hash)(tr_id)(owner)(amount)(votes))
     };
@@ -46,11 +46,12 @@ private:
 
     ///@abi table utuosvoter i64
     struct ut_to_uos_voter{
-        account_name voter;
-        uint64_t tr_hash;
-        time     active_time;
+        account_name  voter;
+        uint64_t      tr_hash;
+        time          active_time;
+        std::string   tr_id;
         uint64_t primary_key()const { return voter; }
-        EOSLIB_SERIALIZE( ut_to_uos_voter, (voter)(tr_hash)(active_time))
+        EOSLIB_SERIALIZE( ut_to_uos_voter, (voter)(tr_hash)(active_time)(tr_id))
     };
     typedef eosio::multi_index<N(utuosvoter) , ut_to_uos_voter> utuosvoter;
 

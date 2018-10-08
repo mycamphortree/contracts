@@ -77,9 +77,10 @@ namespace uosio{
                 a.voter = voter;
                 a.tr_hash = tr_hash;
                 a.active_time = now();
+                a.tr_id = tr_id;
             });
         }else{
-            eosio_assert(now()-ver->active_time > 10 , "Re-voting must be greater than 10s");
+            eosio_assert(now()-ver->active_time > 10 , "The time of re-voting must be greater than 10s");
             auto & tr = _uttouostr.get(ver->tr_hash , "can find tr");
             if(tr.votes == 1){
                 _uttouostr.erase(tr);
@@ -91,6 +92,7 @@ namespace uosio{
             _utuosvoter.modify(ver,0,[&](auto &a){
                 a.tr_hash = tr_hash;
                 a.active_time = now();
+                a.tr_id = tr_id;
             });
         }
         auto tr = _uttouostr.find(tr_hash);
@@ -136,7 +138,7 @@ namespace uosio{
         eosio_assert(  to == _self, "must to uosio.union");
         eosio_assert(  quantity.symbol == CORE_SYMBOL, "must use system coin");
         eosio_assert(  memo.size() < 80 , "The ut address size maximum is 80");
-        eosio_assert(quantity.amount >= 5 * 10000 , "minimum transfer 5 uos");
+        eosio_assert(  quantity.amount >= 100 * 10000 , "minimum transfer 100 uos");
         auto& sta = _utuosstate.get(_self);
         auto uot = _uosuttr.find(from);
         eosio_assert(uot == _uosuttr.end(),"user has unconfirmed transaction");
