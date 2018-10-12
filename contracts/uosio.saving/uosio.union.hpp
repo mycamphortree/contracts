@@ -19,6 +19,15 @@ namespace uosio {
 
 
 class uosio_union : public contract {
+public:
+    uosio_union(account_name self);
+    void modifymember(std::vector<account_name > &members);
+    void utuosvotetr(account_name voter,std::string tr_id , account_name owner , int64_t amount);
+    void transfer( account_name from, account_name to,asset quantity,std::string memo);
+    void setsig(account_name voter, account_name tr , std::string sig);
+    void setousutid(account_name voter,account_name tr , std::string id);
+
+
 
 private:
     uint64_t caculate_hash_64(const char *buf , int32_t size);
@@ -87,14 +96,6 @@ private:
     uttouostr    _uttouostr;
     uosuttr      _uosuttr;
     uosutstate   _uosutstate;
-
-public:
-    uosio_union(account_name self);
-    void modifymember(std::vector<account_name > &members);
-    void utuosvotetr(account_name voter,std::string tr_id , account_name owner , int64_t amount);
-    void transfer( account_name from, account_name to,asset quantity,std::string memo);
-    void setsig(account_name voter, account_name tr , std::string sig);
-    void setousutid(account_name voter,account_name tr , std::string id);
 
 
 

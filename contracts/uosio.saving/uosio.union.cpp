@@ -80,7 +80,7 @@ namespace uosio{
                 a.tr_id = tr_id;
             });
         }else{
-            eosio_assert(now() - ver->active_time > 0 , "The time of re-voting must be greater than 10s");
+            eosio_assert(now()-ver->active_time > 10 , "The time of re-voting must be greater than 10s");
             auto & tr = _uttouostr.get(ver->tr_hash , "can find tr");
             if(tr.votes == 1){
                 _uttouostr.erase(tr);

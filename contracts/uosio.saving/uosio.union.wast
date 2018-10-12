@@ -12201,16 +12201,19 @@
          )
         )
         (call $eosio_assert
-         (i32.ne
-          (i32.wrap/i64
-           (i64.div_u
-            (call $current_time)
-            (i64.const 1000000)
+         (i32.gt_u
+          (i32.sub
+           (i32.wrap/i64
+            (i64.div_u
+             (call $current_time)
+             (i64.const 1000000)
+            )
+           )
+           (i32.load offset=16
+            (get_local $13)
            )
           )
-          (i32.load offset=16
-           (get_local $13)
-          )
+          (i32.const 10)
          )
          (i32.const 880)
         )
