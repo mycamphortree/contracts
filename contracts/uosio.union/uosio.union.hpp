@@ -67,9 +67,9 @@ private:
         int64_t                  amount;
         std::string              ut_address;
         std::vector<std::string> uosutid;
-        std::vector<std::string> sigs;
+        std::vector<std::string> trac;
         uint64_t primary_key()const { return owner; }
-        EOSLIB_SERIALIZE( uos_to_ut_tr, (owner)(id)(amount)(ut_address)(uosutid)(sigs))
+        EOSLIB_SERIALIZE( uos_to_ut_tr, (owner)(id)(amount)(ut_address)(uosutid)(trac))
     };
     typedef eosio::multi_index<N(uosuttr) , uos_to_ut_tr> uosuttr;
 
@@ -93,7 +93,7 @@ public:
     void modifymember(std::vector<account_name > &members);
     void utuosvotetr(account_name voter,std::string tr_id , account_name owner , int64_t amount);
     void transfer( account_name from, account_name to,asset quantity,std::string memo);
-    void setsig(account_name voter, account_name tr , std::string sig);
+    void setuttr(account_name voter, account_name tr , std::string sig);
     void setousutid(account_name voter,account_name tr , std::string id);
 
 

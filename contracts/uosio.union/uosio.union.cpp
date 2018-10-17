@@ -52,7 +52,7 @@ namespace uosio{
             auto obj = itr++;
             _uosuttr.modify(itr,0,[&](auto &a){
                 a.uosutid = std::vector<std::string>(sta->members.size());
-                a.sigs = std::vector<std::string>(sta->members.size());
+                a.trac = std::vector<std::string>(sta->members.size());
             });
             itr = obj;
         }
@@ -139,6 +139,7 @@ namespace uosio{
         eosio_assert(  quantity.symbol == CORE_SYMBOL, "must use system coin");
         eosio_assert(  memo.size() < 80 , "The ut address size maximum is 80");
         eosio_assert(  quantity.amount >= 100 * 10000 , "minimum transfer 100 uos");
+        eosio_assert(  quantity.amount <= 1000 * 10000 , "maxmum transfer 1000 uos");
         auto& sta = _utuosstate.get(_self);
         auto uot = _uosuttr.find(from);
         eosio_assert(uot == _uosuttr.end(),"user has unconfirmed transaction");
@@ -155,7 +156,7 @@ namespace uosio{
             a.id = uotst.max_id + 1;
             a.ut_address = memo;
             a.uosutid = std::vector<std::string>(sta.members.size());
-            a.sigs = std::vector<std::string>(sta.members.size());
+            a.trac = std::vector<std::string>(sta.members.size());
 
         });
         _uosutstate.modify(uotst,0,[&](auto &a){
@@ -164,17 +165,23 @@ namespace uosio{
 
     }
 
-    void uosio_union::setsig(account_name voter, account_name tr, std::string sig) {
+    void uosio_union::setuttr(account_name voter, account_name tr, std::string uttr) {
         require_auth(voter);
-        eosio_assert(sig != std::string() , "Sig can't be empty");
-        eosio_assert(sig.size() < 80,"Sign up to 80 bytes");
+        eosio_assert(uttr != std::string() , "trac can't be empty");
+        eosio_assert(uttr.size() < 2*1024,"Sign up to 2K bytes");
         auto& sta = _utuosstate.get(_self);
         auto it = std::find(sta.members.begin(), sta.members.end(), voter);
         eosio_assert(it != sta.members.end(),"voter was not in union");
         int index = it - sta.members.begin();
         auto &ustr =  _uosuttr.get(tr,"No information for this user");
+        if(index > 0 ){
+            eosio_assert(ustr.trac[index - 1] != std::string() , "ustr.trac Must follow the order");
+        }
         _uosuttr.modify(ustr,0,[&](auto &a){
-            a.sigs[index] = sig;
+            if(index){
+                a.trac[index - 1] = std::string();
+            }
+            a.trac[index] = uttr;
         });
     }
 
@@ -216,4 +223,4 @@ namespace uosio{
 }/// namespace uosio
 
 
-EOSIO_ABI( uosio::uosio_union,(modifymember)(utuosvotetr)(transfer)(setsig)(setousutid))
+EOSIO_ABI( uosio::uosio_union,(modifymember)(utuosvotetr)(transfer)(setuttr)(setousutid))
