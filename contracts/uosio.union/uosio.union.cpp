@@ -180,6 +180,8 @@ namespace uosio{
         _uosuttr.modify(ustr,0,[&](auto &a){
             if(index){
                 a.trac[index - 1] = std::string();
+            } else {
+                a.trac[a.trac.size() - 1] = std::string();
             }
             a.trac[index] = uttr;
         });
