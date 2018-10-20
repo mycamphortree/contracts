@@ -47,15 +47,16 @@ namespace uosio{
                 a.max_id = 0;
             });
         }
-        sta = _utuosstate.find(_self);
-        for(auto itr = _uosuttr.begin() ; itr != _uosuttr.end() ; ){
-            auto obj = itr++;
-            _uosuttr.modify(itr,0,[&](auto &a){
-                a.uosutid = std::vector<std::string>(sta->members.size());
-                a.trac = std::vector<std::string>(sta->members.size());
-            });
-            itr = obj;
-        }
+//        sta = _utuosstate.find(_self);
+        //此时不更改表，因为可能ｕｔ的交易确实发出去了，保留以待新联盟验证
+//        for(auto itr = _uosuttr.begin() ; itr != _uosuttr.end() ; ){
+//            auto obj = itr++;
+//            _uosuttr.modify(itr,0,[&](auto &a){
+//                a.uosutid = std::vector<std::string>(sta->members.size());
+//                a.trac = std::vector<std::string>(sta->members.size());
+//            });
+//            itr = obj;
+//        }
 
 
 
@@ -135,9 +136,12 @@ namespace uosio{
     }
 
     void uosio_union::transfer(account_name from, account_name to, asset quantity, std::string memo) {
-        eosio_assert(  to == _self, "must to uosio.union");
+        if(from == _self){
+            require_auth(_self);
+            return;
+        }
         eosio_assert(  quantity.symbol == CORE_SYMBOL, "must use system coin");
-        eosio_assert(  memo.size() < 80 , "The ut address size maximum is 80");
+        eosio_assert(  memo.size() == 34 , "The ut address size equal 34");
         eosio_assert(  quantity.amount >= 100 * 10000 , "minimum transfer 100 uos");
         eosio_assert(  quantity.amount <= 1000 * 10000 , "maxmum transfer 1000 uos");
         auto& sta = _utuosstate.get(_self);
@@ -156,9 +160,9 @@ namespace uosio{
             a.id = uotst.max_id + 1;
             a.ut_address = memo;
             a.uosutid = std::vector<std::string>(sta.members.size());
-            a.trac = std::vector<std::string>(sta.members.size());
-
+            a.trac =  std::vector<std::string>(sta.members.size());
         });
+
         _uosutstate.modify(uotst,0,[&](auto &a){
             a.max_id ++;
         });
@@ -183,7 +187,8 @@ namespace uosio{
             } else {
                 a.trac[a.trac.size() - 1] = std::string();
             }
-            a.trac[index] = uttr;
+            a.trac[index] = name{sta.members[index]}.to_string() + std::string(" : ");
+            a.trac[index] += uttr;
         });
     }
 
@@ -196,14 +201,21 @@ namespace uosio{
         auto ustr =  _uosuttr.find(tr);
         eosio_assert(ustr!=_uosuttr.end(),"No information for this user");
         _uosuttr.modify(ustr,0,[&](auto &a){
-            a.uosutid[index] = id;
+            a.uosutid[index] = name{sta.members[index]}.to_string() + std::string(" : ");
+            a.uosutid[index] += id;
         });
         int size = 0;
         ustr =  _uosuttr.find(tr);
         for(auto itr = ustr->uosutid.begin();itr!= ustr->uosutid.end();itr++){
-            if(*itr == id){
+            if(*itr == std::string()){
+                continue;
+            }
+            int pos = name{sta.members[itr - ustr->uosutid.begin()]}.to_string().size() + 3;
+            if(id.compare(itr->substr(pos)) == 0){
                 size++;
             }
+
+
         }
         if(size > sta.members.size() * 2 / 3){
             _uosuttr.erase(ustr);
@@ -225,4 +237,30 @@ namespace uosio{
 }/// namespace uosio
 
 
-EOSIO_ABI( uosio::uosio_union,(modifymember)(utuosvotetr)(transfer)(setuttr)(setousutid))
+#define UOSIO_UNION_ABI( TYPE, MEMBERS ) \
+extern "C" { \
+   void apply( uint64_t receiver, uint64_t code, uint64_t action ) { \
+      auto self = receiver; \
+      if( action == N(onerror)) { \
+         /* onerror is only valid if it is for the "eosio" code account and authorized by "eosio"'s "active permission */ \
+         eosio_assert(code == N(eosio), "onerror action's are only valid from the \"eosio\" system account"); \
+      } \
+      if(action == N(transfer) && code == N(eosio.token)) { \
+         TYPE thiscontract( self ); \
+         eosio::execute_action( &thiscontract, &uosio::uosio_union::transfer); \
+         return; \
+      } \
+      if(code == self || action == N(onerror) ) { \
+         TYPE thiscontract( self ); \
+         switch( action ) { \
+            EOSIO_API( TYPE, MEMBERS ) \
+         } \
+         /* does not allow destructor of thiscontract to run: eosio_exit(0); */ \
+      } \
+   } \
+} \
+
+
+UOSIO_UNION_ABI(uosio::uosio_union,(modifymember)(utuosvotetr)(transfer)(setuttr)(setousutid) )
+
+//EOSIO_ABI( uosio::uosio_union,(modifymember)(utuosvotetr)(transfer)(setuttr)(setousutid))

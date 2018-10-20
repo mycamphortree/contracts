@@ -129,6 +129,8 @@ namespace eosiosystem {
 
 
 
+
+
          _gstate.last_pervote_bucket_fill = ct;
       }
       // ********** This code was modified by camphor  <end>*********//
